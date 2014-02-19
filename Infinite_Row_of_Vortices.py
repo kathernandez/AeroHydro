@@ -1,6 +1,3 @@
-
-#Finite row of vortices
-
 #First, we import python libraries 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,5 +24,43 @@ def getVelocityVortex=(strength,xv,yv,X,Y):
 def getStreamFunctionVortex=(strength,xv,yv,X,Y):
     psi = strength/(4*pi)*np.log((X-xv)**2+(Y-yv)**2)
     return psi 
+
+
+#--------Finite row of vortices---------
+
+
+#we need to initialize u,v, and psi by assigning 0 arrays 
+#Note, np arrays will be used instead of lists because arrays are faster for..
+#..computation and require less memory allocation 
+uvortex=np.zeros((N,N),dtype=float)
+vvortex=np.zeros((N,N),dytype=float) 
+psivortex=np.zeros((N,N),dtype=float)
+
+#then we should assign a fixed y-coordinate since its a row only..
+#..the xcordinate will vary 
+yvortex = 0.0
+
+#apply a for loop to calculate u,v, and psi for every ith vortex 
+for xi=0:N:
+    xi=xvortex
+    uvortex,vvortex = getVelocityVortex(gamma,xvortex,yvortex,X,Y)
+    psivortex = getStreamFunctionVortex(gamma,xvortex,yvortex,X,Y)
+
+#plot row of vortices 
+size = 10
+plt.figure(figsize=(size,(yend-ystart)/(xend-xstart)*size))
+plt.xlim(xstart, xend)
+plt.ylim(ystart, yend)
+plt.xlabel('x', fontsize=18)
+plt.ylabel('y', fontsize=18)
+plt.streamplot(X,Y,uvortex,vvortex,\
+              density=2.0,linewidth=1,arrowsize=1,arrowstyle='->')
+plt.scatter(xvortex,yvortex,xvortex,c='r',s=80,marker = 'o')
+
+        
+
+
+
+
 
 
