@@ -38,7 +38,7 @@ psivortex=np.zeros((N,N),dtype=float)
 
 #then we should assign a fixed y-coordinate since its a row only..
 #..the xcoordinate will vary but will be spaced evenly 
-numbervortices = 8                               #number of vortices to be plotted 
+numbervortices = 9                               #number of vortices to be plotted 
 xvortex=np.linspace(xstart,xend,numbervortices)  #location of vortices in the x-direction
 yvortex = np.zeros(numbervortices)               #location of vortices in the y-direction  
 
@@ -66,14 +66,12 @@ plt.scatter(xvortex,yvortex,c='r',s=80,marker = 'o')
 
 #--------------infinite vortices---------------------------------
 
-n=N-20
-a0 = xend-xstart/(n-1)   #spacing between vortices 
-xinfvortex = np.linspace(xstart, xend, n)
-yinfvortex = np.zeros_like(xinfvortex)
+
+a0 = (xend-xstart)/(numbervortices-1)
 
 def getInfVelocityVortex(strength,a,X,Y):
     uinf = + strength/(2*a)*np.sinh(2*pi*Y/a)/(np.cosh(2*pi*Y/a)-np.cos(2*pi*X/a))
-    vinf = - strength/(2*a)*np.sinh(2*pi*X/a)/(np.cosh(2*pi*Y/a)-np.cos(2*pi*X/a))
+    vinf = - strength/(2*a)*np.sin(2*pi*X/a)/(np.cosh(2*pi*Y/a)-np.cos(2*pi*X/a))
     return uinf, vinf
 
 uinfvortex,vinfvortex=getInfVelocityVortex(gamma,a0,X,Y)
@@ -89,7 +87,7 @@ plt.ylabel('y', fontsize = 16)
 plt.title('Infinite Row of Vortices', fontsize =22)
 plt.streamplot(X,Y,uinfvortex,vinfvortex,\
                 density = 2.0, linewidth = 1, arrowsize=1, arrowstyle='->')
-plt.scatter(xinfvortex,yinfvortex,c='r',s=80,marker='o')
+plt.scatter(xvortex,yvortex,c='r',s=80,marker='o')
 plt.show()
 
 
