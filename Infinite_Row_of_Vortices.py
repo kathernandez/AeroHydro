@@ -5,14 +5,14 @@ from math import *
 
 #Create a grid mesh 
 
-N=50                         # number of grid points 
-xstart,xend = -2.0,2.0       # x boundaries
-ystart, yend = -1.0,1.0      # y boudaries 
+N=50                          # number of grid points 
+xstart,xend = -2.0,2.0        # x boundaries
+ystart, yend = -1.0,1.0       # y boudaries 
 x=np.linspace(xstart,xend,N)  # x direnction 1D array 
-y=np.linspace(ystart,yend,N) # y direction 1D array 
-X,Y=np.meshgrid(x,y)         # mesh grid created 
+y=np.linspace(ystart,yend,N)  # y direction 1D array 
+X,Y=np.meshgrid(x,y)          # mesh grid created 
 
-gamma = 5.0                  #strength of vortex (same for all) 
+gamma = 5.0                   #strength of vortex (same for all) 
 
 #define funtion to compute the velocity components
 def getVelocityVortex(strength,xv,yv,X,Y):
@@ -26,7 +26,7 @@ def getStreamFunctionVortex(strength,xv,yv,X,Y):
     return psi 
 
 
-#--------Finite row of vortices---------
+#--------Finite row of vortices---------------------------------
 
 
 #we need to initialize u,v, and psi by assigning 0 arrays 
@@ -37,15 +37,19 @@ vvortex=np.zeros((N,N),dtype=float)
 psivortex=np.zeros((N,N),dtype=float)
 
 #then we should assign a fixed y-coordinate since its a row only..
-#..the xcordinate will vary but will be spaced evenly 
-numbervortices = 8 #number of vortices to be plotted 
-xvortex=np.linspace(xstart,xend,numbervortices)  #x-location of the vortices
-yvortex = np.zeros(numbervortices)   
+#..the xcoordinate will vary but will be spaced evenly 
+numbervortices = 8                               #number of vortices to be plotted 
+xvortex=np.linspace(xstart,xend,numbervortices)  #location of vortices in the x-direction
+yvortex = np.zeros(numbervortices)               #location of vortices in the y-direction  
 
 #apply a for loop to calculate u,v, and psi for every ith vortex 
-for xvortex in range(0,numbervortices):
-    uvortex,vvortex = getVelocityVortex(gamma,xvortex,yvortex,X,Y)
-    psivortex = getStreamFunctionVortex(gamma,xvortex,yvortex,X,Y)
+for i in range(0,numbervortices):
+    uvortex_init,vvortex_init = getVelocityVortex(gamma,xvortex[i],yvortex[i],X,Y)
+    uvortex= uvortex + uvortex_init
+    vvortex= vvortex + vvortex_init
+    
+    psivortex_init= getStreamFunctionVortex(gamma,xvortex[i],yvortex[i],X,Y)
+    psivortex= psivortex + psivortex_init
 
 #plot row of vortices 
 size = 10
