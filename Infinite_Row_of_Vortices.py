@@ -37,11 +37,13 @@ vvortex=np.zeros((N,N),dtype=float)
 psivortex=np.zeros((N,N),dtype=float)
 
 #then we should assign a fixed y-coordinate since its a row only..
-#..the xcordinate will vary 
-yvortex = 0.0
+#..the xcordinate will vary but will be spaced evenly 
+numbervortices = 8 #number of vortices to be plotted 
+xvortex=np.linspace(xstart,xend,numbervortices)  #x-location of the vortices
+yvortex = np.zeros(numbervortices)   
 
 #apply a for loop to calculate u,v, and psi for every ith vortex 
-for xvortex in range(0,N):
+for xvortex in range(0,numbervortices):
     uvortex,vvortex = getVelocityVortex(gamma,xvortex,yvortex,X,Y)
     psivortex = getStreamFunctionVortex(gamma,xvortex,yvortex,X,Y)
 
@@ -54,7 +56,7 @@ plt.xlabel('x', fontsize=18)
 plt.ylabel('y', fontsize=18)
 plt.streamplot(X,Y,uvortex,vvortex,\
               density=2.0,linewidth=1,arrowsize=1,arrowstyle='->')
-plt.scatter(xvortex,yvortex,xvortex,c='r',s=80,marker = 'o')
+plt.scatter(xvortex,yvortex,c='r',s=80,marker = 'o')
 
 plt.show()
         
