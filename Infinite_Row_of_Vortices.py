@@ -58,11 +58,40 @@ plt.xlim(xstart, xend)
 plt.ylim(ystart, yend)
 plt.xlabel('x', fontsize=18)
 plt.ylabel('y', fontsize=18)
+plt.title('Row of Finite Vortices',fontsize=20)
 plt.streamplot(X,Y,uvortex,vvortex,\
               density=2.0,linewidth=1,arrowsize=1,arrowstyle='->')
 plt.scatter(xvortex,yvortex,c='r',s=80,marker = 'o')
 
+
+#--------------infinite vortices---------------------------------
+
+a0 = xend-xstart/(N-1)   #spacing between vortices 
+
+
+def getInfVelocityVortex(strength,a,X,Y):
+    uinf = + strength/(2*a)*np.sinh(2*pi*Y/a)/(np.cosh(2*pi*Y/a)-np.cos(2*pi*X/a))
+    vinf = - strength/(2*a)*np.sinh(2*pi*X)/(np.cosh(2*pi*Y/a)-np.cos(2*pi*X/a))
+    return uinf, vinf
+
+uinfvortex,vinfvortex=getInfVelocityVortex(gamma,a0,X,Y)
+
+#plot
+
+size=10
+plt.figure(figsize=(size, (yend-ystart)/(xend-xstart)*size))
+plt.xlim(xstart, xend)
+plt.ylim(ystart, yend)
+plt.xlabel('x', fontsize = 16)
+plt.ylabel('y', fontsize = 16)
+plt.title('Infinite Row of Vortices', fontsize =22)
+plt.streamplot(X,Y,uinfvortex,vinfvortex,\
+                density = 2.0, linewidth = 1, arrowsize=1, arrowstyle='->')
+plt.scatter(xvortex,yvortex,c='r',s=80,marker='o')
 plt.show()
+
+
+
         
 
 
