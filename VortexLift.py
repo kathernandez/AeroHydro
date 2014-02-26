@@ -65,4 +65,48 @@ xstag2, ystag2 = -R, 0
 plt.scatter([xstag1,xstag2],[ystag1,ystag2], c ='g', s=80, marker ='o')
 plt.show()
 
+#---------Add vortex at the origin with a positive strength------------------
+gamma = 4.0    #strength of vortex
+xvortex, yvortex = 0.0,0.0   #location of vortex
+
+#define functions to compute u, v, and psi for vortex
+
+def getVelocityVortex(strength, xv, yv, X, Y):
+    u = + strength/(2*pi) * (Y-yv)/((X-xv)**2 + (Y-yv)**2)
+    v = - strength/(2*pi) * (X-xv)/((X-xv)**2+(Y-yv)**2)
+    return u, v
+    
+def getStreamFunctionVortex(strength, xv, yv, X, Y):
+    psi = strength/(4*pi)*np.log((X-xv)**2+(Y-yv)**2)
+    return psi
+
+#compute velocity components and stream function 
+uvortex,vvortex = getVelocityVortex(gamma,xvortex,yvortex,X,Y)
+psivortex = getStreamFunctionVortex(gamma,xvortex,yvortex,X,Y)
+
+#apply superposition 
+
+u = ufreestream+udoublet+uvortex
+v = vfreestream + vdoublet + vvortex
+psi = psifreestream + psidoublet + psivortex
+
+#compute new stagnation points 
+
+R = sqrt(k/(2*pi*uinf))
+xstag1, ystag1 = +sqrt(R**2-(gamma/(4*pi*uinf))**2),-gamma/(4*pi*uinf)
+xstag2, ystag2 = -sqrt(R**2-(gamma/(4*pi*uinf))**2),-gamma/(4*pi*uinf)
+
+size = 10
+plt.figure(figsize = (size, (yend-ystart)/(xend-xstart)*size))
+plt.xlim(xstart, xend)
+plt.ylim(ystart, yend)
+plt.xlabel('x',fontsize = 16)
+plt.ylabel('y',fontsize = 16) 
+plt.streamplot(X,Y,u,v,\
+            density = 2.0, linewidth =1, arrowsize = 1.0, arrowstyle='->')
+circle=plt.Circle((0,0), radius = R, color = 'm', alpha = 0.5)
+plt.gca().add_patch(circle)
+plt.scatter(xvortex, yvortex, c='m', s=80, marker='o')
+plt.scatter([xstag1,xstag2],[ystag1,ystag2],c='g', s=80, marker = 'o');
+plt.show()
 
