@@ -92,9 +92,9 @@ psi = psifreestream + psidoublet + psivortex
 
 #compute new stagnation points 
 
-R = sqrt(k/(2*pi*uinf))
-xstag1, ystag1 = +sqrt(R**2-(gamma/(4*pi*uinf))**2),-gamma/(4*pi*uinf)
-xstag2, ystag2 = -sqrt(R**2-(gamma/(4*pi*uinf))**2),-gamma/(4*pi*uinf)
+R = np.sqrt(k/(2*pi*uinf))
+xstag1,ystag1 = +np.sqrt(R**2-(gamma/(4*pi*uinf))**2),-gamma/(4*pi*uinf)
+xstag2,ystag2 = -np.sqrt(R**2-(gamma/(4*pi*uinf))**2),-gamma/(4*pi*uinf)
 
 size = 10
 plt.figure(figsize = (size, (yend-ystart)/(xend-xstart)*size))
@@ -108,5 +108,28 @@ circle=plt.Circle((0,0), radius = R, color = 'm', alpha = 0.5)
 plt.gca().add_patch(circle)
 plt.scatter(xvortex, yvortex, c='m', s=80, marker='o')
 plt.scatter([xstag1,xstag2],[ystag1,ystag2],c='g', s=80, marker = 'o');
+plt.show()
+
+#----------Pressure coefficient----------------------------------
+
+theta = np.linspace(0, 2*pi, 100)
+utheta = -2*uinf*np.sin(theta)-gamma/(2*pi*R)
+
+Cp = 1-(utheta/uinf)**2
+
+#if there is no vortex
+utheta_novortex = -2*uinf*np.sin(theta)
+Cp_novortex = 1-(utheta_novortex/uinf)**2
+
+#plotting
+size = 6
+plt.figure(figsize=(size, size))
+plt.grid(True)
+plt.xlabel(r'$\theta$', fontsize = 18)
+plt.ylabel(r'$C_p$', fontsize = 18)
+plt.xlim(theta.min(), theta.max())
+plt.plot(theta,Cp,color='r',linewidth=1,linestyle='-')
+plt.plot(theta,Cp_novortex,color='g',linewidth=1,linestyle='-')
+plt.legend(['with vortex','without vortex'],loc='best',prop={'size':16});
 plt.show()
 
