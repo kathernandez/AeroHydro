@@ -98,7 +98,58 @@ plt.scatter(vortex.x,vortex.y, c='m',s=80,marker='o')
 plt.scatter(vorteximage.x,vorteximage.y,c='m',s=80,marker='D')
 plt.axhline(0.0,color='k',linestyle='--',linewidth=4)
 plt.show()
+#----------------
 
+
+
+
+
+
+#------------doublet near a wall --------------------------
+uinf = 0.0
+ufreestream = uinf*np.ones((N,N),dtype=float)
+vfreestream = np.zeros((N,N), dtype =float) 
+psifreestream = uinf*Y
+
+class Doublet:
+    def __init__(self,strength,x,y):
+        self.strength = strength
+        self.x,self.y = x,y
+    #Get velocity field 
+    def velocity(self, X,Y):
+        self.u = -self.strength/(2*pi)*((X-self.x)**2-(Y-self.y)**2)/((X-self.x)**2+(Y-self.y)**2)**2
+        self.v = -self.strength/(2*pi)*2*(X-self.x)*(Y-self.y)/((X-self.x)**2+(Y-self.y)**2)**2
+    #get stream function 
+    def streamfunction(self,X,Y):
+        self.psi = -self.strength/(2*pi)*(Y-self.y)/((X-self.x)**2+(Y-self.y)**2)
+
+strengthdoublet = 1.0
+xdoublet,ydoublet = 0.0,0.3
+doublet = Doublet(strengthdoublet,xdoublet,ydoublet)
+doublet.velocity(X,Y)
+doublet.streamfunction(X,Y)
+
+doubletimage = Doublet(strengthdoublet,xdoublet,-ydoublet)
+doubletimage.velocity(X,Y)
+doubletimage.streamfunction(X,Y)
+
+#superposition of the doublet and its image to the uniform flow 
+u = ufreestream + doublet.u + doubletimage.u
+v = vfreestream + doublet.v + doubletimage.v
+psi = psifreestream + doublet.psi + doubletimage.psi 
+
+#plotting
+size = 10
+plt.figure(num=0, figsize = (size,(yend-ystart)/(xend-xstart)*size))
+plt.xlabel('x', fontsize=16)
+plt.ylabel('y', fontsize=16)
+plt.xlim(xstart,xend)
+plt.ylim(ystart,yend)
+plt.streamplot(X,Y,u,v,\
+            density=2.0,linewidth=1,arrowsize=1,arrowstyle='->')
+plt.scatter(doublet.x,doublet.y,c='r',s=80, marker='o')
+plt.scatter(doubletimage.x,doubletimage.y, c='r', s=80, marker='D')
+plt.show()
 
 
 
