@@ -87,7 +87,7 @@ psi = vortex.psi + vorteximage.psi
 
 #plotting
 size = 10
-plt.figure(num=0,figsize=(size,(yend-ystart)/(xend-xstart)*size))
+plt.figure(num=1,figsize=(size,(yend-ystart)/(xend-xstart)*size))
 plt.xlabel('x', fontsize =16)
 plt.ylabel('y', fontsize = 16)
 plt.xlim(xstart,xend)
@@ -98,10 +98,47 @@ plt.scatter(vortex.x,vortex.y, c='m',s=80,marker='o')
 plt.scatter(vorteximage.x,vorteximage.y,c='m',s=80,marker='D')
 plt.axhline(0.0,color='k',linestyle='--',linewidth=4)
 plt.show()
-#----------------
+#----------------motion of vortex pair near the ground------------
+strengthvortex = 1.0
+xvortex1,yvortex1 = -0.1,0.5
+xvortex2,yvortex2 = 0.1,0.5
 
+vortex1 = Vortex(+strengthvortex,xvortex1,yvortex1)
+vortex2 = Vortex(-strengthvortex,xvortex2,yvortex2)
 
+vortex1.velocity(X,Y)
+vortex1.streamfunction(X,Y)
+vortex2.velocity(X,Y)
+vortex2.streamfunction(X,Y)
 
+vorteximage1 = Vortex(-strengthvortex,xvortex1,-yvortex1)
+vorteximage2 = Vortex(+strengthvortex,xvortex2,-yvortex2)
+
+vorteximage1.velocity(X,Y)
+vorteximage2.velocity(X,Y)
+vorteximage1.streamfunction(X,Y)
+vorteximage2.streamfunction(X,Y)
+
+#superposition ofvortex pair and image 
+u = vortex1.u + vorteximage1.u + vortex2.u + vorteximage2.u
+v = vortex1.v + vorteximage1.v + vortex2.v + vorteximage2.v
+psi = vortex1.psi + vorteximage1.psi + vortex2.psi + vorteximage2.psi
+
+#plotting
+size = 10
+plt.figure(num=3,figsize=(size, (yend-ystart)/(xend-xstart)*size))
+plt.xlabel('x', fontsize = 16)
+plt.ylabel('y', fontsize = 16)
+plt.xlim(xstart,xend)
+plt.ylim(ystart,yend)
+plt.streamplot(X,Y,u,v,\
+        density = 2.0, linewidth=1,arrowsize=1,arrowstyle='->')
+plt.scatter(vortex1.x,vortex1.y,c='r',s=80,marker='o')
+plt.scatter(vortex2.x,vortex2.y,c='g',s=80,marker='o')
+plt.scatter(vorteximage1.x,vorteximage1.y, c='r',s=80,marker='D')
+plt.scatter(vorteximage2.x,vorteximage2.y, c='g',s=80,marker='D')
+plt.axhline(0.0,color='k',linestyle='--',linewidth=4)
+plt.show()
 
 
 
@@ -140,7 +177,7 @@ psi = psifreestream + doublet.psi + doubletimage.psi
 
 #plotting
 size = 10
-plt.figure(num=0, figsize = (size,(yend-ystart)/(xend-xstart)*size))
+plt.figure(num=2, figsize = (size,(yend-ystart)/(xend-xstart)*size))
 plt.xlabel('x', fontsize=16)
 plt.ylabel('y', fontsize=16)
 plt.xlim(xstart,xend)
@@ -149,6 +186,7 @@ plt.streamplot(X,Y,u,v,\
             density=2.0,linewidth=1,arrowsize=1,arrowstyle='->')
 plt.scatter(doublet.x,doublet.y,c='r',s=80, marker='o')
 plt.scatter(doubletimage.x,doubletimage.y, c='r', s=80, marker='D')
+plt.axhline(0.0,color='k',linestyle='--',linewidth=4)
 plt.show()
 
 
