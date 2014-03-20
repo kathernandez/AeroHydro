@@ -14,6 +14,8 @@ uinf = 1.0         #free stream velocity
 ufreestream = uinf*np.ones((N,N),dtype=float) 
 vfreestream = np.zeros((N,N),dtype=float)
 
+
+#---------------------finite number of sources along a line---------------------
 class Source: 
     def __init__(self, strength, x, y): 
         self.strength = strength
@@ -65,4 +67,50 @@ velocity = plt.contourf(X,Y,np.sqrt(u**2+v**2), levels = np.linspace(0.0,0.1,10)
 cbar = plt.colorbar(velocity,ticks=[0.0,0.05,0.1],orientation = 'horizontal')
 cbar.set_label('Velocity magnitude',fontsize=16);
 plt.show()
+
+#-----------infinite line of source-------------------------------
+
+from scipy import integrate
+
+sigma = 2.5 #strength of source sheet
+
+upanel = np.empty((N,N),dtype=float)
+vpanel = np.empty((N,N),dtype=float)
+
+#boundaries of the sheet 
+ymin,ymax = -1.0,1.0
+
+#Computing the velocity field 
+for i in range(N):
+    for j in range(N):
+        
+        integrand = lambda s: X[i,j]/(X[i,j]**2+(Y[i,j]-s)**2)
+        upanel[i,j] = sigma/(2*pi)*integrate.quad(integrand,ymin,ymax)[0]
+        
+        integrand = lambda s: (Y[i,j]-s)/(X[i,j]**2+(Y[i,j]-s)**2)
+        vpanel[i,j] = sigma/(2*pi)*integrate.quad(integrand,ymin,ymax)[0]
+
+#superposition to the uniform flow 
+u2 = np.add(ufreestream,upanel)
+v2 = np.add(vfreestream,vpanel)
+
+# plotting
+
+size = 8
+plt.figure(figsize=(size,(yend-ystart)/(xend-xstart)*size))
+plt.grid(True)
+plt.xlabel('x',fontsize=16)
+plt.ylabel('y',fontsize=16)
+plt.xlim(xstart,xend)
+plt.ylim(ystart,yend)
+plt.streamplot(X,Y,u2,v2,\
+              density=2, linewidth=1,arrowsize=1,arrowstyle='->')
+plt.axvline( 0.0,(ymin-ystart)/(yend-ystart),(ymax-ystart)/(yend-ystart),\
+            color='r',linewidth=4)
+velocity = plt.contourf(X,Y,np.sqrt(u2**2+v2**2),levels=np.linspace(0.0,0.1,10))
+cbar=plt.colorbar(velocity,ticks=[0.0,0.05,0.1],orientation='horizontal')
+cbar.set_label('Velocity Magnitude',fontsize=16)
+plt.show()
+
+
 
