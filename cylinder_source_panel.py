@@ -67,7 +67,17 @@ plt.xlim(-1.1,1.1)
 plt.ylim(-1.1,1.1);
 plt.show()
 
-
+#function to evaluate the integral 
+def I(pi,pj):
+    def func(s):
+        return(+(pi.xc-(pj.xa-sin(pj.beta)*s))*cos(pi.beta)\
+               +(pi.yc-(pj.ya+cos(pj.beta)*s))*sin(pi.beta))\
+               /((pi.xc-(pj.xa-sin(pj.beta)*s))**2\
+               +(pi.yc-(pj.ya+cos(pj.beta)*s))**2)
+        return integrate.quad(lambda s:func(s),0.,pj.length)[0]
+        
+        
+            
 
 
 
