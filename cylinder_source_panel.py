@@ -129,7 +129,24 @@ plt.title('Number of panels: %d'%len(panel),fontsize=16)
 plt.legend(['analytical','source panel method'],loc = 'best',prop={'size':16})
 plt.xlim(-1.0,1.0)
 plt.ylim(-4.0,2.0)
-plt.show()
+
+
+
+#----------Challenge task----------
+
+#generate mesh grid 
+N = 100                          #number of points in each direction 
+xstart,xend = -1.0,1.0           #x-dir boundaries
+ystart, yend = -1.5,1.5          #y-dir boundaries 
+x = np.linspace(xstart,xend,N)   #x 1D array 
+y = np.linspace(ystart,yend,N)  #y 1D array 
+X,Y = np.meshgrid(x,y)           #generate meshgrid
+
+uinf = 1.0         #free stream velocity
+ufreestream = uinf*np.ones((N,N),dtype=float) 
+vfreestream = np.zeros((N,N),dtype=float)
+
+
 
 
             
