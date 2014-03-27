@@ -74,9 +74,68 @@ def I(pi,pj):
                +(pi.yc-(pj.ya+cos(pj.beta)*s))*sin(pi.beta))\
                /((pi.xc-(pj.xa-sin(pj.beta)*s))**2\
                +(pi.yc-(pj.ya+cos(pj.beta)*s))**2)
-        return integrate.quad(lambda s:func(s),0.,pj.length)[0]
+    return integrate.quad(lambda s:func(s),0.,pj.length)[0]
+
+A = np.empty((Np,Np),dtype=float)
+for i in range(Np):
+    for j in range(Np):
+        if (i!=j):
+            A[i,j] = 0.5/pi*I(panel[i],panel[j])
+        else:
+            A[i,j] = 0.5
+
+b = -uinf*np.cos([p.beta for p in panel])
+
+
+#solve linear system
+var = np.linalg.solve(A,b)
+for i in range(len(panel)):
+    panel[i].sigma = var[i]
+    
+#function to evaluate the integral Iij(zi)
+def J(pi,pj):
+    def func(s):
+        return (-(pi.xc-(pj.xa-sin(pj.beta)*s))*sin(pi.beta)\
+              +(pi.yc-(pj.ya+cos(pj.beta)*s))*cos(pi.beta))\
+              /((pi.xc-(pj.xa-sin(pj.beta)*s))**2\
+              +(pi.yc-(pj.ya+cos(pi.beta)*s))**2)
+    return integrate.quad(lambda s:func(s),0.,pj.length)[0]
+    
+A=np.zeros((Np,Np),dtype=float)
+for i in range (Np):
+    for j in range (Np):
+        if(i!=j):
+            A[i,j] = 0.5/pi*J(panel[i],panel[j])
+
+B = -uinf*np.sin([p.beta for p in panel])
+sigma = np.array([p.sigma for p in panel])
+Vt = np.dot(A,sigma) +B
+for i in range(Np):
+    panel[i].Vt = Vt[i]
+
+#Calculate pressure coefficient 
+for i in range(Np):
+    panel[i].Cp = 1-(panel[i].Vt/uinf)**2
+    
+
+#plotting Cp
+plt.figure(figsize=(10,6))
+plt.grid(True)
+plt.xlabel('x',fontsize=16)
+plt.ylabel('$C_p$',fontsize=16)
+plt.plot(xcylinder, 1-4*(ycylinder/R)**2,c='b',ls='-',lw=1,zorder=1)
+plt.scatter([p.xc for p in panel],[p.Cp for p in panel],c='r',s=40,zorder=2)
+plt.title('Number of panels: %d'%len(panel),fontsize=16)
+plt.legend(['analytical','source panel method'],loc = 'best',prop={'size':16})
+plt.xlim(-1.0,1.0)
+plt.ylim(-4.0,2.0)
+plt.show()
+
+
+            
+    
         
-        
+
             
 
 
