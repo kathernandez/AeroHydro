@@ -129,6 +129,7 @@ plt.title('Number of panels: %d'%len(panel),fontsize=16)
 plt.legend(['analytical','source panel method'],loc = 'best',prop={'size':16})
 plt.xlim(-1.0,1.0)
 plt.ylim(-4.0,2.0)
+plt.show()
 
 
 
