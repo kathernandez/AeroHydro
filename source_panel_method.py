@@ -90,6 +90,28 @@ plt.plot(np.append([p.xa for p in panel],panel[0].xa),\
         linestyle='-',linewidth=1,marker='o', markersize=6,color='r'); 
 plt.show()
 
+#--Class Freestream containg the freestream conditions ---
+class Freestream: 
+    def __init__(self,uinf,alpha):
+        self.uinf = uinf                #velocity magnitude 
+        self.alpha = alpha*pi/180       #angle of attack (in degrees) 
+        
+#definition of the object freestream
+uinf = 1.0          #freestream speed 
+alpha = 5.0         #angle of attack (in degrees) 
+freestream = Freestream(uinf,alpha)     #instantation of the object's freedom 
+
+#function to evaluate the integral Iij(zi)
+def I(xci,yci,pj,dxdz,dydz):
+    def func(s):
+        return (+(xci-(pj.xa-sin(pj.beta)*s))*dxdz\
+        +(yci-(pj.ya+cos(pj.beta)*s))*dydz)\
+        /((xci-(pj.xa-sin(pj.beta)*s))**2\
+        +(yci-(pj.ya+cos(pj.beta)*s))**2)
+    return integrate.quad(lambda s:func(s),0.,pj.length)[0]
+
+    
+
 
 
         
