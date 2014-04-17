@@ -1,0 +1,109 @@
+#Lesson 11 Source-Vortex Panel Methos 
+import numpy as np
+from scipy import integrate
+from math import *
+import matplotlib.pyplot as plt 
+
+#-----------Discretization into panels------------
+
+#read of the geometry from the a data file 
+coords = np.loadtxt('C:/Users/Kat/Documents/Aero_Hydro/AeroPython-master/resources/naca0012.dat')
+xp,yp = coords[:,0], coords[:,1]
+
+# plotting the geometry 
+valX,valY = 0.1,0.2
+xmin,xmax = min(xp),max(xp)
+ymin,ymax = min(yp),max(yp)
+xstart,xend = xmin-valX*(xmax-xmin),xmax+valX*(xmax-xmin)
+ystart,yend = ymin-valY*(ymax-ymin),ymax+valY*(ymax-ymin)
+size = 10
+plt.figure(figsize=(size,(yend-ystart)/(xend-xstart)*size))
+plt.grid(True)
+plt.xlabel('x',fontsize=16)
+plt.ylabel('y',fontsize=16)
+plt.xlim(xstart,xend)
+plt.ylim(ystart,yend)
+plt.plot(xp,yp,'k-',linewidth=2);
+plt.show()
+
+class Panel:
+    def __init__(self,xa,ya,xb,yb):
+        self.xa,self.ya = xa,ya  #1st end point
+        self.xb,self.xb = xb,yb #second end point 
+        self.xc,self.yc = (xa+xb)/2, (ya+yb)/2  #control point 
+        self.length = sqrt((xb-xa)**2+(yb-ya)**2)  #length of the panel 
+        
+        #orientation of the panel 
+        if(xb-xa<=0.):self.beta = acos((yb-ya)/self.length)
+        elif(xb-xa>0): self.beta = pi+acos(-(yb-ya)/self.length)
+        
+        #location of panel
+        if(self.beta<=pi):self.loc='extrados'
+        else:self.loc = 'intrados'
+        
+        self.sigma = 0.      #source strength
+        self.vt = 0.         #tangential velocity 
+        self.Cp = 0.         #pressure coefficient 
+
+#function to discretize the geometry into panels 
+def definePanels(N,xp,yp):
+    R = (max(xp)-min(xp))/2                                 #radius of circle 
+    xcenter = (max(xp)+min(xp))/2                           #x-coord of center    
+    xcircle = xcenter + R*np.cos(np.linspace(0,2*pi,N+1))   #x-coord of the circle points
+    
+    x = np.copy(xcircle) #projection of the xcoord on the surface 
+    y = np.empty_like(x) #initialization of the y-coord Numpy Array 
+    
+    xp,yp = np.append(xp,xp[0]),np.append(yp,yp[0])         #extend arrays using np.append 
+    
+    I = 0
+    for i in range (N):
+        while (I<len(xp)-1):
+            if(xp[I]<=x[i]<=xp[I+1] or xp[I+1]<=x[i]<=xp[I]): break
+            else: I += 1
+        a = (yp[I+1]-yp[I])/(xp[I+1]-xp[I])
+        b = yp[I+1]-a*xp[I+1]
+        y[i] = a*x[i]+b
+    y[N] = y[0]
+    
+    panel = np.empty(N,dtype=object)
+    for i in range(N):
+        panel[i] = Panel(x[i],y[i],x[i+1],y[i+1])
+    return panel
+    
+#----------Define the geometry for the air foil panels 
+N = 20                              #number of panels 
+panel = definePanels(N,xp,yp)       #discretizaton of the geometry into panels 
+
+#plotting the geometry with the panels 
+valX,valY = 0.1, 0.2 
+xmin,xmax = min([p.xa for p in panel]), max([p.xa for p in panel]) 
+ymin, ymax = min([p.ya for p in panel]), max([p.xa for p in panel]) 
+xstart,xend = xmin-valX*(xmax-xmin),xmax+valX*(xmax-xmin)
+ystart,yend = ymin-valY*(ymax-ymin),ymax+valY*(ymax-ymin)
+size = 10
+plt.figure(figsize=(size,(yend-ystart)/(xend-xstart)*size))
+plt.grid(True) 
+plt.xlabel('x', fontsize = 16)
+plt.ylabel('y',fontsize =16)
+plt.xlim(xstart,xend)
+plt.ylim(ystart,yend)
+plt.plot(xp,yp,'k-',linewidth=1)
+plt.plot(np.append([p.xa for p in panel],panel[0].xa),\
+        np.append([p.ya for p in panel], panel[0].ya),\
+        linestyle = '-', linewidth=1,marker='o', markersize = 6, color ='r')
+plt.show()
+
+#-------add free stream conditions-----------------------------------
+class Freestream:
+    def __init__(self,uinf,alpha):
+        self.uinf=uinf             #velocity magnitude 
+        self.alpha=alpha*pi/180    #angle of attack (in degrees--> radians)
+
+#definition of the object freestream 
+uinf = 1    #free stream speed
+alpha = 1   #angle of attack (in degrees) 
+freestream = Freestream(uinf,alpha)   #instantiation of the object freestream 
+
+
+        
