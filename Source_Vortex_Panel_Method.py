@@ -155,6 +155,44 @@ def kuttaArray(p):
             B[N] -= 0.5/pi*I(p[0].xc,p[0].yc,p[j],+cos(p[0].beta),+sin(p[0].beta))\
                 + 0.5/pi*I(p[N-1].xc,p[N-1].yc,p[j],+cos(p[N-1].beta),+sin(p[N-1].beta))
     return B
+
+
+
+#function to assemble the global matrix 
+def buildMatrix(panel):
+    N = len(panel)
+    A = np.empty((N+1,N+1),dtype = float)
+    AS = sourceMatrix(panel)
+    BV = vortexArray(panel)
+    BK = kuttaArray(panel)
+    A[0:N,0:N],A[0:N,N],A[N,:] = AS[:,:],BV[:],BK[:]
+    return A 
+    
+
+#funtion to build the right hand side of the linear system 
+def buildRHS(p,fs):
+    N = len(p)
+    B = np.zeros(N+1,dtype = float)
+    for i in range(N):
+        B[i] = -fs.uinf*cos(fs.alpha-p[i].beta)
+    B[N] = -fs.uinf*(sin(fs.alpha-p[0].beta)+sin(fs.alpha-p[N-1].beta))
+    return B 
+
+
+A = buildMatrix(panel)  #calculate the singularity matrix 
+B = buildRHS(panel,freestream)  #calculate the freestream RHS
+
+
+#solve the linear system 
+var = np.linalg.solve(A,B)
+for i in range (len(panel)):
+    panel[i].sigma = var[i]
+gamma=var[-1]
+
+
+#function to calculate the tangential velocity at each control point 
+
+
     
 
     
