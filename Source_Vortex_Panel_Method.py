@@ -105,5 +105,64 @@ uinf = 1    #free stream speed
 alpha = 1   #angle of attack (in degrees) 
 freestream = Freestream(uinf,alpha)   #instantiation of the object freestream 
 
+#function to evaluate the integral Tij(zi)
+def I(xci,yci,pj,dxdz,dydz):
+    def func(s):
+        return(+(xci-(pj.xa-sin(pj.beta)*s))*dxdz\
+        +(yci-(pj.ya+cos(pj.beta)*s))*dydz)\
+        /((xci-(pj.xa-sin(pj.beta)*s))**2\
+        +(yci-(pj.ya+cos(pj.beta)*s))**2)
+    return integrate.quad(lambda s:func(s),0.,pj.length)[0]
+    
+
+#function to build the source matrix
+def sourceMatrix(p):
+    N = len(p)
+    A = np.empty((N,N),dtype=float)
+    np.fill_diagonal(A,0.5)
+    for i in range(N):
+        for j in range(N):
+            if(i!=j):
+                A[i,j] = 0.5/pi*I(p[i].xc, p[i].yc, p[j],+cos(p[i].beta),+sin(p[i].beta))
+    return A 
+
+
+
+#function to build the vortex array 
+def vortexArray(p): 
+    N=len(p)
+    B=np.zeros(N,dtype=float)
+    for i in range(N):
+        for j in range(N):
+            if(j!=i):
+                B[i] -= 0.5/pi*I(p[i].xc,p[i].yc,p[j],+sin(p[i].beta),-cos(p[i].beta))
+    return B 
+
+
+#function to build the kutta array 
+def kuttaArray(p):
+    N = len(p)
+    B = np.zeros(N+1,dtype=float)
+    for j in range (N): 
+        if (j==0):
+            B[j] = 0.5/pi*I(p[N-1].xc, p[N-1].yc, p[j], -sin(p[N-1].beta), +cos(p[N-1].beta))
+        elif(j==N-1):
+            B[j] = 0.5/pi*I(p[0].xc,p[0].yc,p[j],-sin(p[0].beta),+cos(p[0].beta))
+        else: 
+            B[j] = 0.5/pi*I(p[0].xc,p[0].yc,p[j],-sin(p[0].beta),+cos(p[0].beta))\
+            + 0.5/pi*I(p[N-1].xc, p[N-1].yc,p[j],-sin(p[N-1].beta),+cos(p[N-1].beta))
+            
+            B[N] -= 0.5/pi*I(p[0].xc,p[0].yc,p[j],+cos(p[0].beta),+sin(p[0].beta))\
+                + 0.5/pi*I(p[N-1].xc,p[N-1].yc,p[j],+cos(p[N-1].beta),+sin(p[N-1].beta))
+    return B
+    
+
+    
+            
+            
+    
+
+
+
 
         
