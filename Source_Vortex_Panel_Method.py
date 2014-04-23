@@ -102,10 +102,13 @@ class Freestream:
 
 #definition of the object freestream 
 uinf = 1    #free stream speed
-alpha = 1   #angle of attack (in degrees) 
+alpha = 5   #angle of attack (in degrees) 
 freestream = Freestream(uinf,alpha)   #instantiation of the object freestream 
 
-#function to evaluate the integral Tij(zi)
+#function to evaluate the integral Tij(zi). Since the integrand for the vortex 
+#is similar to the integrand of the source component we can use the same function 
+#but instead of dxdz being cos it will be sine and instead of dydz being sine it 
+#will be -cos for the vortex 
 def I(xci,yci,pj,dxdz,dydz):
     def func(s):
         return(+(xci-(pj.xa-sin(pj.beta)*s))*dxdz\
@@ -192,12 +195,130 @@ gamma=var[-1]
 
 #function to calculate the tangential velocity at each control point 
 
+def getTangentVelocity(p,fs,gamma):
+    N=len(p)
+    A=np.zeros((N,N+1),dtype = float) 
+    for i in range (N):
+        for j in range(N):
+            if(i!=j):
+                A[i,j] = 0.5/pi*I(p[i].xc,p[i].yc,p[j],-sin(p[i].beta),+cos(p[i].beta))
+                A[i,N] -=0.5/pi*I(p[i].xc, p[i].yc,p[j],+cos(p[i].beta),+sin(p[i].beta))
+    B = fs.uinf*np.sin([fs.alpha-pp.beta for pp in p])
+    var = np.empty(N+1,dtype=float)
+    var = np.append([pp.sigma for pp in p],gamma)
+    vt = np.dot(A,var)+B
+    for i in range(N):
+        p[i].vt = vt[i]
 
-    
 
-    
+
+getTangentVelocity(panel,freestream,gamma) #get tangential velocity 
+
+#function to calculate the pressure coefficient at each control point 
+def getPressureCoefficient(p,fs):
+    for i in range(len(p)):
+        p[i].Cp = 1-(p[i].vt/fs.uinf)**2 
+
+
+getPressureCoefficient(panel,freestream)  #get the pressure coefficient 
+
+
+#Plotting the coefficient of pressure
+valX,valY = 0.1,0.2
+xmin,xmax = min([p.xa for p in panel]),max([p.xa for p in panel])
+Cpmin,Cpmax = min([p.Cp for p in panel]),max([p.Cp for p in panel])
+xstart,xend = xmin-valX*(xmax-xmin), xmax+valX*(xmax-xmin)
+ystart,yend = Cpmin-valY*(Cpmax-Cpmin),Cpmax+valY*(Cpmax-Cpmin)
+plt.figure(figsize=(10,6))
+plt.grid(True)
+plt.xlabel('x',fontsize=16)
+plt.ylabel('$C_p$',fontsize =16)
+plt.plot([p.xc for p in panel if p.loc=='extrados'],\
+        [p.Cp for p in panel if p.loc=='extrados'],\
+        'ro-', linewidth=2)
+plt.plot([p.xc for p in panel if p.loc=='intrados'],\
+        [p.Cp for p in panel if p.loc=='intrados'],\
+        'bo-',linewidth=1)
+plt.legend(['extrados','intrados'],'best',prop={'size':14})
+plt.xlim(xstart,xend)
+plt.ylim(ystart,yend)
+plt.gca().invert_yaxis()
+plt.title('Number of panels: %d' %len(panel));
+
+plt.show()
+
+
+
+#sum of all source sink strengths
+print '--> sum of source/sink strengths:', sum([p.sigma*p.length for p in panel])
+
+#calclation of the lift
+Cl = gamma*sum([p.length for p in panel])/(0.5*freestream.uinf*(xmax-xmin))
+print '--> Lift Coefficient: Cl=',Cl
+
+#--------challenge task; plot streamlines and Cp -----------
+
+#function to calculate the velocity field given a mesh grid 
+
+def getVelocityField(panel,freestream,gamma,X,Y):
+    Nx,Ny = X.shape
+    u,v = np.empty((Nx,Ny),dtype=float),np.empty((Nx,Ny),dtype=float)
+    for i in range(Nx):
+        for j in range(Ny):
+            u[i,j] = freestream.uinf*cos(freestream.alpha)\
+                    +0.5/pi*sum([p.sigma*I(X[i,j],Y[i,j],p,1,0) for p in panel])\
+                    -0.5/pi*sum([gamma*I(X[i,j],Y[i,j],p,0,1) for p in panel])
             
-            
+            v[i,j] = freestream.uinf*sin(freestream.alpha)\
+                    +0.5/pi*sum([p.sigma*I(X[i,j],Y[i,j],p,0,1) for p in panel])\
+                    -0.5/pi*sum([gamma*I(X[i,j],Y[i,j],p,1,0) for p in panel])
+    return u,v
+
+#definition of mesh grid
+Nx,Ny = 20,20
+valX,valY = 1.0,2.0
+
+xmin,xmax = min([p.xa for p in panel]),max([p.xa for p in panel])
+ymin,ymax = min([p.ya for p in panel]),max([p.ya for p in panel])
+
+xstart,xend = xmin-valX*(xmax-xmin) ,xmax+valX*(xmax-xmin)
+ystart,yend = ymin-valY*(ymax-ymin),ymax+valY*(ymax-ymin)
+
+X,Y = np.meshgrid(np.linspace(xstart,xend,Nx),np.linspace(ystart,yend,Ny))
+
+# get the velicity field on the mesh grid
+u,v = getVelocityField(panel,freestream,gamma,X,Y)
+
+# plotting the velocity field
+size=10
+plt.figure(figsize=(size,(yend-ystart)/(xend-xstart)*size))
+plt.xlabel('x',fontsize=16)
+plt.ylabel('y',fontsize=16)
+
+plt.streamplot(X,Y,u,v,density=1,linewidth=1,arrowsize=1,arrowstyle='->')
+plt.fill([p.xa for p in panel],[p.ya for p in panel],'ko-',linewidth=2,zorder=2)
+plt.xlim(xstart,xend)
+plt.ylim(ystart,yend)
+plt.title('Streamlines around a NACA 0012 airfoil, '+r'$\alpha=$'+str(alpha));
+plt.show()
+
+# computing the pressure field
+Cp = 1.0-(u**2+v**2)/freestream.uinf**2
+
+# plotting the pressure field
+size=12
+plt.figure(figsize=(1.1*size,(yend-ystart)/(xend-xstart)*size))
+plt.xlabel('x',fontsize=16)
+plt.ylabel('y',fontsize=16)
+contf = plt.contourf(X,Y,Cp,levels=np.linspace(-2.0,1.0,100),extend='both')
+cbar = plt.colorbar(contf)
+cbar.set_label('$C_p$',fontsize=16)
+cbar.set_ticks([-2.0,-1.0,0.0,1.0])
+plt.fill([p.xc for p in panel],[p.yc for p in panel],'ko-',linewidth=2,zorder=2)
+plt.xlim(xstart,xend)
+plt.ylim(ystart,yend)
+plt.title('Contour of pressure field');
+plt.show()
     
 
 
