@@ -37,7 +37,7 @@ class Panel:
         
         #locations of the panel 
         if (self.beta<=pi): self.loc = 'extrados'
-        else: self.loc = 'intados'
+        else: self.loc = 'intrados'
         
         self.sigma = 0.  #source strength 
         self.vt = 0.     #tangential vlocity 
@@ -90,7 +90,7 @@ plt.plot(np.append([p.xa for p in panel],panel[0].xa),\
         linestyle='-',linewidth=1,marker='o', markersize=6,color='r'); 
 plt.show()
 
-#--Class Freestream containg the freestream conditions ---
+#--Class Freestream containing the freestream conditions ---
 class Freestream: 
     def __init__(self,uinf,alpha):
         self.uinf = uinf                #velocity magnitude 
@@ -98,7 +98,7 @@ class Freestream:
         
 #definition of the object freestream
 uinf = 1.0          #freestream speed 
-alpha = 5.0         #angle of attack (in degrees) 
+alpha = 0.0       #angle of attack (in degrees) 
 freestream = Freestream(uinf,alpha)     #instantation of the object's freedom 
 
 #function to evaluate the integral Iij(zi)
@@ -223,20 +223,20 @@ plt.show()
 Cp = 1.0-(u**2+v**2)/freestream.uinf**2
 
 #plotting the pressure field 
-size = 12
+size = 10
 plt.figure(figsize=(1.1*size,(yend-ystart)/(xend-xstart)*size))
 plt.xlabel('x',fontsize=16)
 plt.ylabel('y',fontsize=16)
 contf=plt.contourf(X,Y,Cp,levels=np.linspace(-2.0,1.0,100),extend='both')
 cbar=plt.colorbar(contf)
 cbar.set_label('$C_p$',fontsize=16)
-cbar.set-ticks([-2.0,-1.0,0.0,1.0])
+cbar.set_ticks([-2.0,-1.0,0.0,1.0])
 plt.fill([p.xc for p in panel],[p.yc for p in panel],'ko-',linewidth=2,zorder=2)
 plt.xlim(xstart,xend)
 plt.ylim(ystart,yend)
 plt.title('Contour of pressure field')
 plt.show()
-
+ 
 
         
 
