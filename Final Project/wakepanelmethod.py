@@ -84,6 +84,10 @@ def definePanels(N,xp,yp):
 N = 20  #number of panels
 panel = definePanels(N,xp,yp) #discretization of the geometry into panels 
 
+#would I include a panel here where the N = 1 and the start point would be the end
+#point of of the airfoil and the end point would be the whate ever the x end is...
+#and y would remain constant. Call it the wake panel. Use the Class Panel 
+
 #plotting the geometry with panels 
 valX,valY = 0.1,0.2
 xmin,xmax = min([p.xa for p in panel]), max([p.xa for p in panel])
@@ -104,8 +108,8 @@ plt.plot(np.append([p.xa for p in panel],panel[0].xa),\
         linestyle='-',linewidth=1,marker='o', markersize=6,color='r'); 
 plt.show()
 
-#--Class Freestream containing the freestream conditions ---
-class Freestream: 
+#---Class Freestream containing the freestream conditions ------
+class Freestream:
     def __init__(self,uinf,alpha):
         self.uinf = uinf                #velocity magnitude 
         self.alpha = alpha*pi/180       #angle of attack (in degrees) 
@@ -115,7 +119,7 @@ uinf = 1.0          #freestream speed
 alpha = 0.0       #angle of attack (in degrees) 
 freestream = Freestream(uinf,alpha)     #instantation of the object's freedom 
 
-#function to evaluate the integral Iij(zi)
+#---Function to evaluate the integral Iij(zi)---
 def I(xci,yci,pj,dxdz,dydz):
     def func(s):
         return(+((yci-(pj.yb+cos(pj.beta)*s))**2\
@@ -124,4 +128,49 @@ def I(xci,yci,pj,dxdz,dydz):
                 /(((xci-(pj.xb-sin(pj.beta)*s))**2\
                 +(yci-(pj.yb+cos(pj.beta)*s))**2)**2)
     return integrate.quad(lambda s:func(s),0.,pj.length)[0]
+
+#---Function to build doublet matrix---
+def doubletMatrix(p):
+    N = len(p)
+    A = np.empty((N+1,N+1),dtype=float)
+    np.fill_diagonal(A,1)
+    for i in range (N): 
+        for j in range (N): 
+            if(i!=j):
+                A[i,j] = 0.5/pi * I(p[i].xc, p[i].yc, p[j],+cos(p[i].beta),+sin(p[i].beta))
+            if(i==N):
+                A[i,j] = 0 
+                A[i,0] = 1
+                A[i,N] = -1 
+    return A 
+
+#----Function to build RHS ------
+def buildRHS(p,fs):
+    N = len(p)
+    B = np.zeros(N+1,dtype = float)
+    for i in range(N):
+        B[i] = -fs.uinf*cos(fs.alpha-p[i].beta)
+        B[N] = 0
+    return B
+
+#----Build System---------
+A = doubletMatrix(panel)   #here is the problem..panel does not take into account the wake panel 
+B = buildRHS(panel,freestream) #need to modify the panel--> change the fuction which defines the geometry 
+
+
+#---Solve system of linear equations ----
+var = np.linalg.solve(A,B)
+for i in range (len(panel)):
+    panel[i].K = var[i]
+
+
+
+
+        
+    
+
+                
+    
+    
+ 
 
