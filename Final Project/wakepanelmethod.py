@@ -79,11 +79,11 @@ def definePanels(N,xp,yp):
     panel = np.empty(N+1,dtype=object) #changed the panel size from N to N+1 to include wake panel 
    
     for i in range(N+1):
-        if (i!=N+1):
-            panel[i] = Panel(x[i],y[i],x[i+1],y[i+1])
-        else:
-           panel[i] = Panel(x[i-1],y[i-1],x[i],y[i])  #including the wake panel where the starting point
-    return panel                                     # is the end point of the airfoil geometry 
+        if (i==N):
+            panel[i] = Panel(x[i],y[i],100000,y[i])#start of the wake panel is the endpoint of the last panel 
+        else:                                      #endpoint is 100,000 chord lengths 
+           panel[i] = Panel(x[i],y[i],x[i+1],y[i+1]) #including the body panels 
+    return panel                                      
     
 N = 20  #number of panels
 panel = definePanels(N,xp,yp) #discretization of the geometry into panels 
@@ -106,10 +106,15 @@ plt.xlabel('x',fontsize=16)
 plt.ylabel('y',fontsize=16)
 plt.xlim(xstart,xend)
 plt.ylim(ystart,yend)
-plt.plot(xp,yp,'k-',linewidth=2)
-plt.plot(np.append([p.xa for p in panel],panel[0].xa),\
-        np.append([p.ya for p in panel],panel[0].ya),\
-        linestyle='-',linewidth=1,marker='o', markersize=6,color='r'); 
+#plt.plot(xp,yp,'k-',linewidth=2)
+#plt.plot(np.append([p.xa for p in panel],panel[0].xa),\
+       # np.append([p.ya for p in panel],panel[0].ya),\
+        #linestyle='-',linewidth=1,marker='o', markersize=6,color='r'); 
+plt.plot([p.xa for p in panel],[p.ya for p in panel],\
+          linestyle='-',linewidth=1,marker='o',markersize=6,color='r');
+plt.plot([p.xb for p in panel],[p.yb for p in panel],\
+          linestyle='-',linewidth=1,marker='o',markersize=6,color='r');
+plt.xlim(xstart,2) 
 plt.show()
 
 
@@ -127,7 +132,7 @@ freestream = Freestream(uinf,alpha)     #instantation of the object's freedom
 #---Function to evaluate the integral Iij(zi)---
 def I(xci,yci,pj,dxdz,dydz):
     def func(s):
-        return(+((yci-(pj.yb+cos(pj.beta)*s))**2\
+        return(((yci-(pj.yb+cos(pj.beta)*s))**2\
                 -(xci-(pj.xb-sin(pj.beta)*s))**2)*dxdz\
                 -(2*(xci-(pj.xb-sin(pj.beta)*s))*(yci-(pj.yb+cos(pj.beta)*s)))*dydz)\
                 /(((xci-(pj.xb-sin(pj.beta)*s))**2\
