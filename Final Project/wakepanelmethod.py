@@ -16,7 +16,7 @@ xp,yp = coords[:,0],coords[:,1]
 valX,valY = 0.1,0.2
 xmin,xmax = min(xp),max(xp)
 ymin,ymax = min(yp),max(yp)
-xstart,xend = xmin-valX*(xmax-xmin), xmax+valX*(xmax-xmin)
+xstart,xend = xmin-valX*(xmax-xmin), xmax+valX*4 #changed the x-end value 
 ystart,yend = ymin-valY*(ymax-ymin), ymax+valY*(ymax-ymin)
 size = 10
 plt.figure(figsize=(size,(yend-ystart)/(xend-xstart)*size))
@@ -76,10 +76,14 @@ def definePanels(N,xp,yp):
         y[i] = a*x[i]+b           #interpolation being used to get y coordinates 
     y[N] = y[0]
     
-    panel = np.empty(N,dtype=object)
-    for i in range(N):
-        panel[i] = Panel(x[i],y[i],x[i+1],y[i+1])
-    return panel
+    panel = np.empty(N+1,dtype=object) #changed the panel size from N to N+1 to include wake panel 
+   
+    for i in range(N+1):
+        if (i!=N+1):
+            panel[i] = Panel(x[i],y[i],x[i+1],y[i+1])
+        else:
+           panel[i] = Panel(x[i-1],y[i-1],x[i],y[i])  #including the wake panel where the starting point
+    return panel                                     # is the end point of the airfoil geometry 
     
 N = 20  #number of panels
 panel = definePanels(N,xp,yp) #discretization of the geometry into panels 
@@ -92,7 +96,7 @@ panel = definePanels(N,xp,yp) #discretization of the geometry into panels
 valX,valY = 0.1,0.2
 xmin,xmax = min([p.xa for p in panel]), max([p.xa for p in panel])
 ymin,ymax = min([p.ya for p in panel]),max([p.ya for p in panel])
-xstart,xend = xmin-valX*(xmax-xmin),xmax+valX*(xmax-xmin)
+xstart,xend = xmin-valX*(xmax-xmin),xmax+valX*4
 ystart,yend = ymin-valY*(ymax-ymin),ymax+valY*(ymax-ymin)
 size = 10
 plt.figure(figsize=(size,(yend-ystart)/(xend-xstart)*size))
@@ -107,6 +111,7 @@ plt.plot(np.append([p.xa for p in panel],panel[0].xa),\
         np.append([p.ya for p in panel],panel[0].ya),\
         linestyle='-',linewidth=1,marker='o', markersize=6,color='r'); 
 plt.show()
+
 
 #---Class Freestream containing the freestream conditions ------
 class Freestream:
@@ -164,8 +169,47 @@ for i in range (len(panel)):
     panel[i].K = var[i]
 
 
+#-----Generate stream lines-------------
 
+def getVelocityField(panel,freestream,K,X,Y):
+    Nx,Ny = X.shape
+    u,v = np.empty((Nx,Ny),dtype=float),np.empty((Nx,Ny),dtype=float)
+    for i in range(Nx):
+        for j in range(Ny):
+            u[i,j] = freestream.uinf*cos(freestream.alpha)\
+                    +0.5/pi*sum([p.K*I(X[i,j],Y[i,j],p,1,0) for p in panel])
+            
+            v[i,j] = freestream.uinf*sin(freestream.alpha)\
+                    +0.5/pi*sum([p.K*I(X[i,j],Y[i,j],p,0,1) for p in panel])
+    return u,v
 
+#definition of mesh grid
+Nx,Ny = 20,20
+valX,valY = 1.0,2.0
+
+xmin,xmax = min([p.xa for p in panel]),max([p.xa for p in panel])
+ymin,ymax = min([p.ya for p in panel]),max([p.ya for p in panel])
+
+xstart,xend = xmin-valX*(xmax-xmin) ,xmax+valX*(xmax-xmin)
+ystart,yend = ymin-valY*(ymax-ymin),ymax+valY*(ymax-ymin)
+
+X,Y = np.meshgrid(np.linspace(xstart,xend,Nx),np.linspace(ystart,yend,Ny))
+
+# get the velicity field on the mesh grid
+u,v = getVelocityField(panel,freestream,gamma,X,Y)
+
+# plotting the velocity field
+size=10
+plt.figure(figsize=(size,(yend-ystart)/(xend-xstart)*size))
+plt.xlabel('x',fontsize=16)
+plt.ylabel('y',fontsize=16)
+
+plt.streamplot(X,Y,u,v,density=1,linewidth=1,arrowsize=1,arrowstyle='->')
+plt.fill([p.xa for p in panel],[p.ya for p in panel],'ko-',linewidth=2,zorder=2)
+plt.xlim(xstart,xend)
+plt.ylim(ystart,yend)
+plt.title('Streamlines around a NACA 0012 airfoil, '+r'$\alpha=$'+str(alpha));
+plt.show()
         
     
 
