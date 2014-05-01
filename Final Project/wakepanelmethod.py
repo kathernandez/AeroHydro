@@ -122,7 +122,7 @@ class Freestream:
         
 #definition of the object freestream
 uinf = 1.0          #freestream speed 
-alpha = 0     #angle of attack (in degrees) 
+alpha = 8   #angle of attack (in degrees) 
 freestream = Freestream(uinf,alpha)     #instantation of the object's freedom 
 
 #---Function to evaluate the integral Iij(zi)---
