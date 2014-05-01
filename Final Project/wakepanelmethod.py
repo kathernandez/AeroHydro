@@ -122,7 +122,7 @@ class Freestream:
         
 #definition of the object freestream
 uinf = 1.0          #freestream speed 
-alpha = 5       #angle of attack (in degrees) 
+alpha = 0     #angle of attack (in degrees) 
 freestream = Freestream(uinf,alpha)     #instantation of the object's freedom 
 
 #---Function to evaluate the integral Iij(zi)---
@@ -151,6 +151,7 @@ def doubletMatrix(p):
                 A[i,N] = -1 
     return A 
 
+
 #----Function to build RHS ------
 def buildRHS(p,fs):
     N = len(p)
@@ -158,12 +159,12 @@ def buildRHS(p,fs):
     for i in range(N):
         B[i] = -fs.uinf*cos(fs.alpha-p[i].beta)
         B[N] = 0
-    return B
+    return B 
+
 
 #----Build System---------
 A = doubletMatrix(panel) 
 B = buildRHS(panel,freestream) 
-
 
 
 #---Solve system of linear equations ----
@@ -213,7 +214,7 @@ plt.figure(figsize=(size,(yend-ystart)/(xend-xstart)*size))
 plt.xlabel('x',fontsize=16)
 plt.ylabel('y',fontsize=16)
 
-plt.streamplot(X,Y,u,v,density=3,linewidth=1,arrowsize=1,arrowstyle='->')
+plt.streamplot(X,Y,u,v,density=2,linewidth=1,arrowsize=1,arrowstyle='->')
 plt.fill([p.xa for p in panel],[p.ya for p in panel],'ko-',linewidth=2,zorder=2)
 plt.xlim(xstart,xend)
 plt.ylim(ystart,yend)
