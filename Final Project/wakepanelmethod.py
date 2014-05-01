@@ -88,10 +88,6 @@ def definePanels(N,xp,yp):
 N = 20  #number of panels
 panel = definePanels(N,xp,yp) #discretization of the geometry into panels 
 
-#would I include a panel here where the N = 1 and the start point would be the end
-#point of of the airfoil and the end point would be the whate ever the x end is...
-#and y would remain constant. Call it the wake panel. Use the Class Panel 
-
 #plotting the geometry with panels 
 valX,valY = 0.1,0.2
 xmin,xmax = min([p.xa for p in panel]), max([p.xa for p in panel])
@@ -126,7 +122,7 @@ class Freestream:
         
 #definition of the object freestream
 uinf = 1.0          #freestream speed 
-alpha = 0.0       #angle of attack (in degrees) 
+alpha = 5       #angle of attack (in degrees) 
 freestream = Freestream(uinf,alpha)     #instantation of the object's freedom 
 
 #---Function to evaluate the integral Iij(zi)---
@@ -143,14 +139,15 @@ def I(xci,yci,pj,dxdz,dydz):
 def doubletMatrix(p):
     N = len(p)
     A = np.empty((N+1,N+1),dtype=float)
-    np.fill_diagonal(A,1)
+    np.fill_diagonal(A,0.5)
     for i in range (N): 
         for j in range (N): 
             if(i!=j):
                 A[i,j] = 0.5/pi * I(p[i].xc, p[i].yc, p[j],+cos(p[i].beta),+sin(p[i].beta))
             if(i==N):
-                A[i,j] = 0 
-                A[i,0] = 1
+                A[i,:] = 0 
+                A[i,0] = -1            #Apply kutta condition 
+                A[i,N-1] = 1
                 A[i,N] = -1 
     return A 
 
@@ -164,8 +161,9 @@ def buildRHS(p,fs):
     return B
 
 #----Build System---------
-A = doubletMatrix(panel)   #here is the problem..panel does not take into account the wake panel 
-B = buildRHS(panel,freestream) #need to modify the panel--> change the fuction which defines the geometry 
+A = doubletMatrix(panel) 
+B = buildRHS(panel,freestream) 
+
 
 
 #---Solve system of linear equations ----
@@ -173,6 +171,12 @@ var = np.linalg.solve(A,B)
 for i in range (len(panel)):
     panel[i].K = var[i]
 
+#sum of all source sink strengths
+print '--> sum of doublet strengths:', sum([p.K*p.length for p in panel])
+
+#calclation of the lift
+Cl = p.K*sum([p.length for p in panel])/(0.5*freestream.uinf*(xmax-xmin))
+print '--> Lift Coefficient: Cl=',Cl
 
 #-----Generate stream lines-------------
 
@@ -195,7 +199,7 @@ valX,valY = 1.0,2.0
 xmin,xmax = min([p.xa for p in panel]),max([p.xa for p in panel])
 ymin,ymax = min([p.ya for p in panel]),max([p.ya for p in panel])
 
-xstart,xend = xmin-valX*(xmax-xmin) ,xmax+valX*(xmax-xmin)
+xstart,xend = xmin-valX*(xmax-xmin), 2
 ystart,yend = ymin-valY*(ymax-ymin),ymax+valY*(ymax-ymin)
 
 X,Y = np.meshgrid(np.linspace(xstart,xend,Nx),np.linspace(ystart,yend,Ny))
@@ -209,7 +213,7 @@ plt.figure(figsize=(size,(yend-ystart)/(xend-xstart)*size))
 plt.xlabel('x',fontsize=16)
 plt.ylabel('y',fontsize=16)
 
-plt.streamplot(X,Y,u,v,density=1,linewidth=1,arrowsize=1,arrowstyle='->')
+plt.streamplot(X,Y,u,v,density=3,linewidth=1,arrowsize=1,arrowstyle='->')
 plt.fill([p.xa for p in panel],[p.ya for p in panel],'ko-',linewidth=2,zorder=2)
 plt.xlim(xstart,xend)
 plt.ylim(ystart,yend)
